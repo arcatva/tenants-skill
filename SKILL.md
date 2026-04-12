@@ -1,7 +1,7 @@
 ---
 name: tenants
 description: Manage resources on the Tenants PaaS platform — deploy full-stack projects or perform CRUD operations on databases, servers, sites, and Docker images via API.
-allowed-tools: Bash(curl *) Bash(mkdir *) Bash(rm -rf /tmp/tenants-deploy*) Bash(docker *) Bash(sudo docker *) Bash(sudo chmod *) Bash(ls *) Bash(cp *) Bash(grep *) Bash(head *) mcp__docker__build_image mcp__docker__list_images Read Write
+allowed-tools: Bash(curl *) Bash(mkdir *) Bash(rm -rf /tmp/tenants-deploy*) Bash(docker *) Bash(sudo docker *) Bash(sudo chmod *) Bash(ls *) Bash(cp *) Bash(grep *) Bash(head *) Bash(sed *) Bash(tr *) Bash(cut *) mcp__docker__build_image mcp__docker__list_images Read Write
 ---
 
 # Tenants PaaS
@@ -110,7 +110,7 @@ To create a resource without a full deploy:
 ```bash
 # Create database
 curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/databases" \
-  -H "Content-Type: application/json" -d '{"name":"NAME","dbType":"postgres"}'
+  -H "Content-Type: application/json" -d '{"name":"NAME","dbType":"DB_TYPE"}'
 
 # Create server (requires an uploaded docker image ID)
 curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/servers" \
@@ -139,7 +139,7 @@ All subsequent API calls use: `-b /tmp/tenants-deploy/cookies`
 
 ```bash
 curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/databases" \
-  -H "Content-Type: application/json" -d '{"name":"NAME","dbType":"postgres"}'
+  -H "Content-Type: application/json" -d '{"name":"NAME","dbType":"DB_TYPE"}'
 ```
 
 Save `host`, `port`, `databaseName`, `dbUsername`, `password` from the response — they must be baked into the Docker image (the platform does not inject env vars).
@@ -197,7 +197,7 @@ rm -rf /tmp/tenants-deploy
 
 ## Response format
 
-All API responses:
+Success:
 
 ```json
 {
@@ -207,7 +207,15 @@ All API responses:
 }
 ```
 
-On error: `success: false`, `data: null`, `error: "message"`.
+Error:
+
+```json
+{
+  "success": false,
+  "data": null,
+  "error": "message"
+}
+```
 
 ## References
 
