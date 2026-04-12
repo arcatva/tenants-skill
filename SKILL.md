@@ -19,7 +19,8 @@ Optional:
 
 Deployment-specific:
 - `project_name` — Resource name (default: ask the user)
-- `db_type` — `postgres` | `mysql` | `redis` (default: `postgres`)
+- `needs_db` — Whether the project needs a managed database (default: ask the user; skip for static sites)
+- `db_type` — `postgres` | `mysql` | `redis` (default: `postgres`; only relevant if `needs_db` is true)
 
 ## Determine intent
 
@@ -125,9 +126,11 @@ For uploading a Docker image, see step 4 of the deploy workflow below.
 
 ## Deploy workflow
 
-```
-Auth → Create DB → Build image → Upload → Create server → Create site → Bind → Verify
-```
+First, determine whether the project needs a database:
+- **With database** (backends, full-stack apps): `Auth → Create DB → Build image → Upload → Create server → Create site → Bind → Verify`
+- **Without database** (static sites, no-DB backends): `Auth → Build image → Upload → Create server → Create site → Bind → Verify`
+
+If unclear, ask the user whether their project requires a database before proceeding.
 
 ### 1. Authenticate
 
@@ -135,7 +138,9 @@ Get a session cookie via OIDC. See [references/auth.md](references/auth.md).
 
 All subsequent API calls use: `-b /tmp/tenants-deploy/cookies`
 
-### 2. Create managed database
+### 2. Create managed database _(optional)_
+
+> Skip this step if the project does not need a database (e.g. static sites, purely front-end apps).
 
 ```bash
 curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/databases" \
