@@ -1,0 +1,59 @@
+# API Reference
+
+All endpoints require cookie authentication. Base path: `https://BASE_URL/api/v1`.
+
+## Authentication
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/login` | GET | Redirect to Keycloak |
+| `/auth/logout` | GET | Logout |
+| `/auth/me` | GET | Current user info |
+
+## Databases
+
+| Endpoint | Method | Body | Description |
+|----------|--------|------|-------------|
+| `/databases` | POST | `{"name","dbType"}` | Create database |
+| `/databases` | GET | — | List user's databases |
+| `/databases/{name}` | GET | — | Get database details |
+| `/databases/{name}` | DELETE | — | Delete database |
+
+`dbType` values: `postgres`, `mysql`, `redis`. Limit: 3 per user.
+
+Response includes: `host`, `port`, `databaseName`, `dbUsername`, `password`.
+
+## Docker Images
+
+| Endpoint | Method | Body | Description |
+|----------|--------|------|-------------|
+| `/docker-images` | POST | `multipart: file` | Upload image tar |
+| `/docker-images` | GET | — | List images |
+| `/docker-images/{id}` | GET | — | Get image details |
+| `/docker-images/{id}` | DELETE | — | Delete image |
+
+Formats: `.tar`, `.tar.gz`, `.tgz`. Max: 5 GB. Name & version auto-extracted from manifest.
+
+## Servers
+
+| Endpoint | Method | Body | Description |
+|----------|--------|------|-------------|
+| `/servers` | POST | `{"name","dockerImageId","port?"}` | Create server |
+| `/servers` | GET | — | List servers |
+| `/servers/{name}` | GET | — | Get server |
+| `/servers/{name}` | DELETE | — | Delete server |
+
+Default port: 8080. Resources: 128Mi/100m → 512Mi/500m.
+
+## Sites
+
+| Endpoint | Method | Body | Description |
+|----------|--------|------|-------------|
+| `/sites` | POST | `{"name"}` | Create site |
+| `/sites` | GET | — | List sites |
+| `/sites/{name}` | GET | — | Get site |
+| `/sites/{name}` | DELETE | — | Delete site |
+| `/sites/{name}/server` | PUT | `{"serverName"}` | Bind server |
+| `/sites/{name}/server` | DELETE | — | Unbind server |
+
+Limit: 5 per user. URL pattern: `https://{site}-{user}.zhefuz.link/`
