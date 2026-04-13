@@ -44,8 +44,6 @@ Formats: `.tar`, `.tar.gz`, `.tgz`. Max: 5 GB. Name & version auto-extracted fro
 | `/servers` | POST | `{"name","dockerImageId"}` | Create server |
 | `/servers` | GET | — | List servers |
 | `/servers/{name}` | GET | — | Get server |
-| `/servers/{name}/stop` | POST | — | Stop server (scale to 0) |
-| `/servers/{name}/resume` | POST | — | Resume stopped server |
 | `/servers/{name}/retry` | POST | — | Retry failed server |
 | `/servers/{name}` | DELETE | — | Delete server |
 
