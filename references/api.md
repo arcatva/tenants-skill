@@ -19,6 +19,7 @@ All resource names must follow RFC 1123: start with a lowercase letter, contain 
 | `/databases` | POST | `{"name","dbType"}` | Create database |
 | `/databases` | GET | — | List user's databases |
 | `/databases/{name}` | GET | — | Get database details |
+| `/databases/{name}/retry` | POST | — | Retry failed database |
 | `/databases/{name}` | DELETE | — | Delete database |
 
 `dbType` values: `postgres`, `mysql`, `redis`. Limit: 3 per user.
@@ -43,6 +44,9 @@ Formats: `.tar`, `.tar.gz`, `.tgz`. Max: 5 GB. Name & version auto-extracted fro
 | `/servers` | POST | `{"name","dockerImageId"}` | Create server |
 | `/servers` | GET | — | List servers |
 | `/servers/{name}` | GET | — | Get server |
+| `/servers/{name}/stop` | POST | — | Stop server (scale to 0) |
+| `/servers/{name}/resume` | POST | — | Resume stopped server |
+| `/servers/{name}/retry` | POST | — | Retry failed server |
 | `/servers/{name}` | DELETE | — | Delete server |
 
 Port auto-detected from image `EXPOSE` (default: 8080). Resources: 128Mi/100m → 512Mi/500m.
