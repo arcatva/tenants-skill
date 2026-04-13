@@ -149,6 +149,8 @@ curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/database
 
 Save `host`, `port`, `databaseName`, `dbUsername`, `password` from the response — they must be baked into the Docker image (the platform does not inject env vars).
 
+**Poll until ready:** After creating the database, poll `GET /databases/NAME` until `status` is `ready`. If `status` becomes `failed`, stop and report the error. Do not proceed to the next step until the database is `ready`.
+
 ### 3. Build Docker image
 
 Write app files to `/tmp/tenants-deploy/app/` using the **Write** tool. See [references/app-templates.md](references/app-templates.md) for starter templates.
@@ -180,6 +182,8 @@ curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/servers"
 ```
 
 Port is auto-detected from the Docker image `EXPOSE` directive (default: 8080).
+
+**Poll until ready:** After creating the server, poll `GET /servers/NAME` until `status` is `ready`. If `status` becomes `failed`, check logs with `GET /servers/NAME/logs` and report. Do not proceed to bind until the server is `ready`.
 
 ### 6. Create site & bind
 
