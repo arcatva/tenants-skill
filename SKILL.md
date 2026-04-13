@@ -115,7 +115,7 @@ curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/database
 
 # Create server (requires an uploaded docker image ID)
 curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/servers" \
-  -H "Content-Type: application/json" -d '{"name":"NAME","dockerImageId":"IMAGE_ID","port":8080}'
+  -H "Content-Type: application/json" -d '{"name":"NAME","dockerImageId":"IMAGE_ID"}'
 
 # Create site
 curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/sites" \
@@ -176,8 +176,10 @@ Save the `id` from the response.
 
 ```bash
 curl -s -b /tmp/tenants-deploy/cookies -X POST "https://BASE_URL/api/v1/servers" \
-  -H "Content-Type: application/json" -d '{"name":"NAME","dockerImageId":"IMAGE_ID","port":8080}'
+  -H "Content-Type: application/json" -d '{"name":"NAME","dockerImageId":"IMAGE_ID"}'
 ```
+
+Port is auto-detected from the Docker image `EXPOSE` directive (default: 8080).
 
 ### 6. Create site & bind
 
@@ -234,5 +236,6 @@ Error:
 - Site URL pattern: `https://{site}-{username}.zhefuz.link/`
 - Container resources: 128Mi/100m requests, 512Mi/500m limits
 - Limits: 5 sites, 3 databases per user
-- Images must listen on port **8080**
+- Port auto-detected from Docker image `EXPOSE` directive (default: 8080)
+- Resource names must follow RFC 1123: start with a letter, lowercase letters/digits/hyphens only, max 63 chars
 - Always confirm with user before deleting resources

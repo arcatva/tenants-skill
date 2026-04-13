@@ -2,6 +2,8 @@
 
 All endpoints require cookie authentication. Base path: `https://BASE_URL/api/v1`.
 
+All resource names must follow RFC 1123: start with a lowercase letter, contain only lowercase letters, digits, and hyphens, max 63 characters.
+
 ## Authentication
 
 | Endpoint | Method | Description |
@@ -38,12 +40,12 @@ Formats: `.tar`, `.tar.gz`, `.tgz`. Max: 5 GB. Name & version auto-extracted fro
 
 | Endpoint | Method | Body | Description |
 |----------|--------|------|-------------|
-| `/servers` | POST | `{"name","dockerImageId","port?"}` | Create server |
+| `/servers` | POST | `{"name","dockerImageId"}` | Create server |
 | `/servers` | GET | — | List servers |
 | `/servers/{name}` | GET | — | Get server |
 | `/servers/{name}` | DELETE | — | Delete server |
 
-Default port: 8080. Resources: 128Mi/100m → 512Mi/500m.
+Port auto-detected from image `EXPOSE` (default: 8080). Resources: 128Mi/100m → 512Mi/500m.
 
 ## Sites
 
