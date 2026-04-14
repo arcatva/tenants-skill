@@ -52,7 +52,7 @@ Formats: `.tar`, `.tar.gz`, `.tgz`. Max: 5 GB. Name & version auto-extracted fro
 
 Port auto-detected from image `EXPOSE` (default: 8080). Resources: 128Mi/100m → 512Mi/500m.
 
-Statuses: `pending` → `provisioning` → `running` | `failed` (mirror K8s pod phases). Databases also have `upgrading` during major version upgrades. Use `/logs` endpoint to debug failures.
+Statuses: `pending` → `running` | `failed` (mirror K8s pod phases). Databases also have `upgrading` during major version upgrades. Use `/logs` endpoint to debug failures.
 
 ## Sites
 
