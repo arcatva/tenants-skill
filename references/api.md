@@ -20,11 +20,14 @@ All resource names must follow RFC 1123: start with a lowercase letter, contain 
 | `/databases` | GET | — | List user's databases |
 | `/databases/{name}` | GET | — | Get database details |
 | `/databases/{name}/logs` | GET | — | Get pod logs |
+| `/databases/{name}/upgrade` | POST | — | Upgrade to latest major version |
 | `/databases/{name}` | DELETE | — | Delete database |
 
 `dbType` values: `postgres`, `mysql`, `redis`. Limit: 3 per user.
 
-Response includes: `host`, `port`, `databaseName`, `dbUsername`, `password`.
+Response includes: `host`, `port`, `databaseName`, `dbUsername`, `password`, `majorVersion`, `latestVersion`.
+
+**Upgrade**: `POST /databases/{name}/upgrade` triggers an async upgrade to the latest major version (Postgres 17, MySQL 8.4, Redis 8). For Postgres/MySQL the platform runs an automated dump→recreate→restore (expect 1-5 min downtime). Host/port stay stable; existing data is preserved. Poll status until `ready`.
 
 ## Docker Images
 
