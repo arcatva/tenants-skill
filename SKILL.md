@@ -155,9 +155,15 @@ Save `host`, `port`, `databaseName`, `dbUsername`, `password` from the response 
 
 Write app files to `/tmp/tenants-deploy/app/` using the **Write** tool. See [references/app-templates.md](references/app-templates.md) for starter templates.
 
-Build with Docker MCP or CLI (see [references/docker.md](references/docker.md)):
-- Prefer `mcp__docker__build_image` if available
-- Otherwise use `sudo docker build` — **always use `sudo`**, the user is typically not in the `docker` group
+> ⚠️ **The cluster runs linux/amd64.** Always build with `--platform=linux/amd64` and pin base images to amd64 in the Dockerfile (`FROM --platform=linux/amd64 …`). Building on an ARM host (Apple Silicon, etc.) without this flag produces an arm64 image that fails with `exec format error` on the cluster. See [references/docker.md](references/docker.md).
+
+Build with the Docker CLI (preferred — guarantees the platform flag is honored):
+
+```bash
+sudo docker build --platform=linux/amd64 -t APP_NAME:VERSION /tmp/tenants-deploy/app/
+```
+
+**Always use `sudo`** — the user is typically not in the `docker` group.
 
 Then export as tar for upload:
 ```bash

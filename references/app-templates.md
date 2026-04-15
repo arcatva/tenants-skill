@@ -2,6 +2,8 @@
 
 Starter templates for deploying to Tenants PaaS. Replace `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` with values from the database creation response.
 
+> ⚠️ Every Dockerfile below pins `FROM --platform=linux/amd64`. The Tenants cluster only runs amd64 nodes — do not remove this flag, even when templating for an arm64 host. Also pass `--platform=linux/amd64` to `docker build`. See [docker.md](docker.md).
+
 ## Node.js + Express + PostgreSQL
 
 ### package.json
@@ -21,7 +23,7 @@ Starter templates for deploying to Tenants PaaS. Replace `DB_HOST`, `DB_PORT`, `
 ### Dockerfile
 
 ```dockerfile
-FROM node:20-alpine
+FROM --platform=linux/amd64 node:20-alpine
 WORKDIR /app
 COPY package.json .
 RUN npm install --production
@@ -63,7 +65,7 @@ gunicorn==21.2.0
 ### Dockerfile
 
 ```dockerfile
-FROM python:3.12-slim
+FROM --platform=linux/amd64 python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -97,14 +99,14 @@ def index():
 ### Dockerfile
 
 ```dockerfile
-FROM golang:1.22-alpine AS build
+FROM --platform=linux/amd64 golang:1.22-alpine AS build
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -o server .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server .
 
-FROM alpine:3.19
+FROM --platform=linux/amd64 alpine:3.19
 COPY --from=build /app/server /server
 EXPOSE 8080
 CMD ["/server"]
@@ -117,7 +119,7 @@ For apps that don't need a database, skip the database creation step.
 ### Dockerfile
 
 ```dockerfile
-FROM node:20-alpine
+FROM --platform=linux/amd64 node:20-alpine
 WORKDIR /app
 COPY . .
 RUN npm install --production
@@ -127,6 +129,7 @@ CMD ["node", "server.js"]
 
 ## Key constraints
 
+- **Platform**: `linux/amd64` — pin it in `FROM` and pass `--platform=linux/amd64` to `docker build`
 - **Port**: Always 8080
 - **DB credentials**: Hardcoded in source (no env var injection)
 - **Image tag**: `name:version` format required (e.g. `myapp:1.0.0`)
