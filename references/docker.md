@@ -59,6 +59,23 @@ sudo chmod 644 /tmp/tenants-deploy/image.tar
 - Tag format `name:version` — auto-extracted from tar's `manifest.json` `RepoTags`
 - Max upload size: 5 GB
 
+## Download from platform
+
+Previously uploaded images can be downloaded as tar files from the platform:
+
+```bash
+curl -s -b /tmp/tenants-deploy/cookies "https://BASE_URL/api/v1/docker-images/IMAGE_ID/download" \
+  -o image.tar
+```
+
+The downloaded tar is compatible with `docker load`:
+
+```bash
+sudo docker load -i image.tar
+```
+
+Only images with `running` status can be downloaded.
+
 ## Verify the built image's architecture
 
 Before uploading, confirm the image is amd64:

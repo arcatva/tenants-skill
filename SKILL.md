@@ -75,6 +75,17 @@ curl -s -b /tmp/tenants-deploy/cookies "https://BASE_URL/api/v1/servers/NAME"
 curl -s -b /tmp/tenants-deploy/cookies "https://BASE_URL/api/v1/sites/NAME"
 ```
 
+### Download Docker image
+
+Download a previously uploaded image as a tar file (suitable for `docker load`). Only available for images with `running` status.
+
+```bash
+curl -s -b /tmp/tenants-deploy/cookies "https://BASE_URL/api/v1/docker-images/IMAGE_ID/download" \
+  -o downloaded-image.tar
+```
+
+Response is a binary `application/x-tar` stream, not JSON. The suggested filename is `{imageName}-{version}.tar`.
+
 ### Delete resource
 
 > ⚠️ Always confirm with the user before deleting. Deletions are irreversible.
