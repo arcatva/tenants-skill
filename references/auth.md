@@ -1,63 +1,42 @@
-# OIDC Authentication Flow
+# Token Authentication
 
-The platform uses Keycloak OIDC with cookie-based sessions and `form_post` response mode. All steps use `curl` and store state in `/tmp/tenants-deploy/`.
+Every API request carries the user's personal access token as a Bearer header.
 
-## Step-by-step
+## Get a token
 
-Run each as a **separate** Bash call. Every command starts with `curl`.
+1. User opens the Tenants dashboard at `https://{BASE_URL}/dashboard`.
+2. They click the **Skill** tab → **Generate token**.
+3. The dashboard shows a `tn_…` string exactly once. The user copies it and pastes it into the chat with the agent.
 
-### 1. Get Keycloak login page
+## Use the token
 
-```bash
-mkdir -p /tmp/tenants-deploy
-```
-
-```bash
-curl -s -c /tmp/tenants-deploy/cookies -b /tmp/tenants-deploy/cookies -L \
-  "https://BASE_URL/auth/login" -o /tmp/tenants-deploy/login-form.html
-```
-
-### 2. Check if already authenticated or need to POST credentials
-
-Step 1 may return either a **Keycloak login form** (fresh session) or an **OIDC form_post callback** (existing Keycloak session). Check which one:
-
-- If `login-form.html` contains `NAME="code"` → already authenticated at Keycloak, copy to callback and skip to step 3.
-- Otherwise → it's a login form, POST credentials.
+Store it in a variable at the start of the session:
 
 ```bash
-if grep -q 'NAME="code"' /tmp/tenants-deploy/login-form.html 2>/dev/null; then
-  cp /tmp/tenants-deploy/login-form.html /tmp/tenants-deploy/callback.html
-else
-  curl -s -c /tmp/tenants-deploy/cookies -b /tmp/tenants-deploy/cookies \
-    -d "username=USERNAME&password=PASSWORD" \
-    "$(grep -oiP 'action="[^"]*"' /tmp/tenants-deploy/login-form.html | head -1 | cut -d'"' -f2 | sed 's/&amp;/\&/g')" \
-    -o /tmp/tenants-deploy/callback.html
-fi
+TOKEN="tn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-### 3. Complete OIDC callback
-
-Parse the form_post HTML and POST the OIDC parameters back to the app. Note: the HTML may use uppercase (`NAME`, `VALUE`, `ACTION`) or lowercase attributes.
+Every API call:
 
 ```bash
-curl -s -c /tmp/tenants-deploy/cookies -b /tmp/tenants-deploy/cookies -L -o /dev/null \
-  -d "$(grep -oiP 'NAME="\w+" VALUE="[^"]*"' /tmp/tenants-deploy/callback.html \
-    | sed 's/NAME="//I;s/" VALUE="/=/I;s/"$//' \
-    | tr '\n' '&' | sed 's/&$//')" \
-  "https://BASE_URL/signin-oidc"
+curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/servers"
 ```
 
-### 4. Verify
+## Verify the token works
 
 ```bash
-curl -s -b /tmp/tenants-deploy/cookies "https://BASE_URL/auth/me"
+curl -sf -H "Authorization: Bearer $TOKEN" "https://BASE_URL/auth/me" >/dev/null \
+  && echo "OK" || echo "Token invalid — ask user to regenerate in dashboard"
 ```
 
-Should return `{"authenticated":true, ...}`. If not, credentials are wrong.
+The backend returns 401 if the token is missing, malformed, or revoked.
+
+## Revoke / rotate
+
+From the dashboard Skill panel the user can **Revoke** (stop the token working) or **Regenerate** (revoke + create a new one in one click). Regeneration is the right flow when the token may have leaked.
 
 ## Troubleshooting
 
-- If step 1 already returns the form_post callback (contains `NAME="code"`), Keycloak has an existing session — step 2 handles this automatically.
-- If step 2 returns a Keycloak error page instead of the callback HTML, the username or password is incorrect.
-- The `callback.html` should contain `NAME="code"` — if it doesn't, authentication failed at Keycloak.
-- Cookies are stored in `/tmp/tenants-deploy/cookies` and reused for all subsequent API calls.
+- **401 Unauthorized** — the token is wrong, expired, or revoked. Ask the user to regenerate.
+- **Token format** — always starts with `tn_` followed by 32 alphanumerics. Anything else is not a Tenants token.
+- **No cookies involved** — do not pass `-b cookies` / `-c cookies` anywhere. All state is in the Bearer header.
