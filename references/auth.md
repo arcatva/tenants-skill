@@ -19,7 +19,7 @@ TOKEN="tn_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 Every API call:
 
 ```bash
-curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/servers"
+curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/managed-servers"
 ```
 
 ## Verify the token works

@@ -16,18 +16,18 @@ All resource names must follow RFC 1123: start with a lowercase letter, contain 
 
 | Endpoint | Method | Body | Description |
 |----------|--------|------|-------------|
-| `/databases` | POST | `{"name","dbType"}` | Create database |
-| `/databases` | GET | — | List user's databases |
-| `/databases/{name}` | GET | — | Get database details |
-| `/databases/{name}/logs` | GET | — | Get pod logs |
-| `/databases/{name}/upgrade` | POST | — | Upgrade to latest major version |
-| `/databases/{name}` | DELETE | — | Delete database |
+| `/managed-databases` | POST | `{"name","dbType"}` | Create database |
+| `/managed-databases` | GET | — | List user's databases |
+| `/managed-databases/{name}` | GET | — | Get database details |
+| `/managed-databases/{name}/logs` | GET | — | Get pod logs |
+| `/managed-databases/{name}/upgrade` | POST | — | Upgrade to latest major version |
+| `/managed-databases/{name}` | DELETE | — | Delete database |
 
 `dbType` values: `postgres`, `mysql`, `redis`. Limit: 3 per user.
 
 Response includes: `host`, `port`, `databaseName`, `dbUsername`, `password`, `majorVersion`, `latestVersion`.
 
-**Upgrade**: `POST /databases/{name}/upgrade` triggers an async upgrade to the latest major version (Postgres 17, MySQL 8.4, Redis 8). For Postgres/MySQL the platform runs an automated dump→recreate→restore (expect 1-5 min downtime). Host/port stay stable; existing data is preserved. Poll status until `ready`.
+**Upgrade**: `POST /managed-databases/{name}/upgrade` triggers an async upgrade to the latest major version (Postgres 17, MySQL 8.4, Redis 8). For Postgres/MySQL the platform runs an automated dump→recreate→restore (expect 1-5 min downtime). Host/port stay stable; existing data is preserved. Poll status until `ready`.
 
 ## Docker Images
 
@@ -46,11 +46,11 @@ Download returns a binary `application/x-tar` file (not JSON). Only available fo
 
 | Endpoint | Method | Body | Description |
 |----------|--------|------|-------------|
-| `/servers` | POST | `{"name","dockerImageId"}` | Create server |
-| `/servers` | GET | — | List servers |
-| `/servers/{name}` | GET | — | Get server |
-| `/servers/{name}/logs` | GET | — | Get pod logs |
-| `/servers/{name}` | DELETE | — | Delete server |
+| `/managed-servers` | POST | `{"name","dockerImageId"}` | Create server |
+| `/managed-servers` | GET | — | List servers |
+| `/managed-servers/{name}` | GET | — | Get server |
+| `/managed-servers/{name}/logs` | GET | — | Get pod logs |
+| `/managed-servers/{name}` | DELETE | — | Delete server |
 
 Port auto-detected from image `EXPOSE` (default: 8080). Resources: 128Mi/100m → 512Mi/500m.
 
@@ -64,7 +64,7 @@ Statuses: `pending` → `running` | `failed` (mirror K8s pod phases). Databases 
 | `/sites` | GET | — | List sites |
 | `/sites/{name}` | GET | — | Get site |
 | `/sites/{name}` | DELETE | — | Delete site |
-| `/sites/{name}/server` | PUT | `{"serverName"}` | Bind server |
-| `/sites/{name}/server` | DELETE | — | Unbind server |
+| `/sites/{name}/managed-server` | PUT | `{"managedServerName"}` | Bind server |
+| `/sites/{name}/managed-server` | DELETE | — | Unbind server |
 
 Limit: 5 per user. URL pattern: `https://{site}-{user}.zhefuz.link/`

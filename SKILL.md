@@ -55,13 +55,13 @@ Store the token in a variable at the start of the session; the user gets it from
 
 ```bash
 # Databases
-curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/databases"
+curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/managed-databases"
 
 # Docker images
 curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/docker-images"
 
 # Servers
-curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/servers"
+curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/managed-servers"
 
 # Sites
 curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/sites"
@@ -73,13 +73,13 @@ All list responses return `{"success": true, "data": [...]}` with an array of re
 
 ```bash
 # Database by name
-curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/databases/NAME"
+curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/managed-databases/NAME"
 
 # Docker image by ID
 curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/docker-images/IMAGE_ID"
 
 # Server by name
-curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/servers/NAME"
+curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/managed-servers/NAME"
 
 # Site by name
 curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/sites/NAME"
@@ -102,13 +102,13 @@ Response is a binary `application/x-tar` stream, not JSON. The suggested filenam
 
 ```bash
 # Database by name
-curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/databases/NAME"
+curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/managed-databases/NAME"
 
 # Docker image by ID
 curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/docker-images/IMAGE_ID"
 
 # Server by name
-curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/servers/NAME"
+curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/managed-servers/NAME"
 
 # Site by name
 curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/sites/NAME"
@@ -118,11 +118,11 @@ curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/sit
 
 ```bash
 # Bind a server to a site
-curl -s -H "Authorization: Bearer $TOKEN" -X PUT "https://BASE_URL/api/v1/sites/SITE_NAME/server" \
-  -H "Content-Type: application/json" -d '{"serverName":"SERVER_NAME"}'
+curl -s -H "Authorization: Bearer $TOKEN" -X PUT "https://BASE_URL/api/v1/sites/SITE_NAME/managed-server" \
+  -H "Content-Type: application/json" -d '{"managedServerName":"SERVER_NAME"}'
 
 # Unbind the server from a site
-curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/sites/SITE_NAME/server"
+curl -s -H "Authorization: Bearer $TOKEN" -X DELETE "https://BASE_URL/api/v1/sites/SITE_NAME/managed-server"
 ```
 
 ## Create resources (standalone)
@@ -131,11 +131,11 @@ To create a resource without a full deploy:
 
 ```bash
 # Create database
-curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/databases" \
+curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/managed-databases" \
   -H "Content-Type: application/json" -d '{"name":"NAME","dbType":"DB_TYPE"}'
 
 # Create server (requires an uploaded docker image ID)
-curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/servers" \
+curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/managed-servers" \
   -H "Content-Type: application/json" -d '{"name":"NAME","dockerImageId":"IMAGE_ID"}'
 
 # Create site
@@ -167,13 +167,13 @@ All subsequent API calls use: `-H "Authorization: Bearer $TOKEN"`
 > Skip this step if the project does not need a database (e.g. static sites, purely front-end apps).
 
 ```bash
-curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/databases" \
+curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/managed-databases" \
   -H "Content-Type: application/json" -d '{"name":"NAME","dbType":"DB_TYPE"}'
 ```
 
 Save `host`, `port`, `databaseName`, `dbUsername`, `password` from the response — they must be baked into the Docker image (the platform does not inject env vars).
 
-**Poll until ready:** After creating the database, poll `GET /databases/NAME` until `status` is `running`. If `status` becomes `failed`, stop and report the error. Do not proceed to the next step until the database is `running`.
+**Poll until ready:** After creating the database, poll `GET /managed-databases/NAME` until `status` is `running`. If `status` becomes `failed`, stop and report the error. Do not proceed to the next step until the database is `running`.
 
 ### 3. Build Docker image
 
@@ -207,13 +207,13 @@ Save the `id` from the response.
 ### 5. Create server
 
 ```bash
-curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/servers" \
+curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/managed-servers" \
   -H "Content-Type: application/json" -d '{"name":"NAME","dockerImageId":"IMAGE_ID"}'
 ```
 
 Port is auto-detected from the Docker image `EXPOSE` directive (default: 8080).
 
-**Poll until ready:** After creating the server, poll `GET /servers/NAME` until `status` is `running`. If `status` becomes `failed`, check logs with `GET /servers/NAME/logs` and report. Do not proceed to bind until the server is `running`.
+**Poll until ready:** After creating the server, poll `GET /managed-servers/NAME` until `status` is `running`. If `status` becomes `failed`, check logs with `GET /managed-servers/NAME/logs` and report. Do not proceed to bind until the server is `running`.
 
 ### 6. Create site & bind
 
@@ -223,8 +223,8 @@ curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/sites
 ```
 
 ```bash
-curl -s -H "Authorization: Bearer $TOKEN" -X PUT "https://BASE_URL/api/v1/sites/NAME/server" \
-  -H "Content-Type: application/json" -d '{"serverName":"NAME"}'
+curl -s -H "Authorization: Bearer $TOKEN" -X PUT "https://BASE_URL/api/v1/sites/NAME/managed-server" \
+  -H "Content-Type: application/json" -d '{"managedServerName":"NAME"}'
 ```
 
 Live at: `https://NAME-USERNAME.zhefuz.link/`
