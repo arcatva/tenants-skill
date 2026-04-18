@@ -57,7 +57,7 @@ sudo chmod 644 /tmp/tenants-deploy/image.tar
 - Use `EXPOSE` in Dockerfile to declare the listening port (default: 8080 if omitted)
 - Database credentials must be hardcoded (no env var injection at runtime)
 - Tag format `name:version` — auto-extracted from tar's `manifest.json` `RepoTags`
-- Max upload size: 5 GB
+- Max upload size: 500 MB
 
 ## Download from platform
 

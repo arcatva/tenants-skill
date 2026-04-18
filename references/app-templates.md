@@ -133,4 +133,4 @@ CMD ["node", "server.js"]
 - **Port**: Always 8080
 - **DB credentials**: Hardcoded in source (no env var injection)
 - **Image tag**: `name:version` format required (e.g. `myapp:1.0.0`)
-- **Max size**: 5 GB
+- **Max size**: 500 MB

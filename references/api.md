@@ -39,7 +39,7 @@ Response includes: `host`, `port`, `databaseName`, `dbUsername`, `password`, `ma
 | `/docker-images/{id}` | DELETE | — | Delete image |
 | `/docker-images/{id}/download` | GET | — | Download image as tar |
 
-Formats: `.tar`, `.tar.gz`, `.tgz`. Max: 5 GB. Name & version auto-extracted from manifest.
+Formats: `.tar`, `.tar.gz`, `.tgz`. Max: 500 MB. Name & version auto-extracted from manifest.
 Download returns a binary `application/x-tar` file (not JSON). Only available for images with `running` status.
 
 ## Servers
