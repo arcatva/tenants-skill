@@ -2,7 +2,7 @@
 
 All endpoints require cookie authentication. Base path: `https://BASE_URL/api/v1`.
 
-All resource names must follow RFC 1123: start with a lowercase letter, contain only lowercase letters, digits, and hyphens, max 63 characters.
+All resource names must follow RFC 1123 and be **≤ 20 characters**: start with a lowercase letter, contain only lowercase letters, digits, and hyphens. The platform appends `-<username>-<5-char-suffix>` when creating the underlying K8s resource, so the 20-char cap keeps the composed name under the 63-char DNS label limit.
 
 ## Authentication
 
