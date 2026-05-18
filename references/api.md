@@ -20,6 +20,7 @@ All resource names must follow RFC 1123 and be **≤ 20 characters**: start with
 | `/managed-databases` | GET | — | List user's databases |
 | `/managed-databases/{name}` | GET | — | Get database details |
 | `/managed-databases/{name}/logs` | GET | — | Get pod logs |
+| `/managed-databases/{name}/metrics` | GET | `?range=1h` (also `6h`, `24h`) | CPU / memory / network / restart time-series |
 | `/managed-databases/{name}/upgrade` | POST | — | Upgrade to latest major version |
 | `/managed-databases/{name}` | DELETE | — | Delete database |
 
@@ -50,6 +51,7 @@ Download returns a binary `application/x-tar` file (not JSON). Only available fo
 | `/managed-servers` | GET | — | List servers |
 | `/managed-servers/{name}` | GET | — | Get server |
 | `/managed-servers/{name}/logs` | GET | — | Get pod logs |
+| `/managed-servers/{name}/metrics` | GET | `?range=1h` (also `6h`, `24h`) | CPU / memory / network / restart time-series |
 | `/managed-servers/{name}` | DELETE | — | Delete server |
 
 Port auto-detected from image `EXPOSE` (default: 8080). Resources: 128Mi/100m → 512Mi/500m.

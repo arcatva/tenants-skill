@@ -215,6 +215,8 @@ Port is auto-detected from the Docker image `EXPOSE` directive (default: 8080).
 
 **Poll until ready:** After creating the server, poll `GET /managed-servers/NAME` until `status` is `running`. If `status` becomes `failed`, check logs with `GET /managed-servers/NAME/logs` and report. Do not proceed to bind until the server is `running`.
 
+**Metrics:** To query resource metrics call `GET /{resource-type}/{name}/metrics?range=<1h|6h|24h>`; the response contains `cpuCores`, `memoryBytes`, `netRxBytes`, `netTxBytes` time-series arrays (timestamps + values) and a scalar `restartCount`.
+
 ### 6. Create site & bind
 
 ```bash
