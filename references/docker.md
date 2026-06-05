@@ -59,6 +59,33 @@ sudo chmod 644 /tmp/tenants-deploy/image.tar
 - Tag format `name:version` — auto-extracted from tar's `manifest.json` `RepoTags`
 - Max upload size: 500 MB
 
+## Import from ghcr.io
+
+Instead of building and uploading a tar, you can import a pre-built image directly from GitHub Container Registry into your image library.
+
+```bash
+# Public image — no credentials needed
+curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/docker-images/import" \
+  -H "Content-Type: application/json" \
+  -d '{"sourceRef":"ghcr.io/owner/app:tag"}'
+```
+
+For a **private** image, include a GitHub Personal Access Token with the `read:packages` scope:
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/docker-images/import" \
+  -H "Content-Type: application/json" \
+  -d '{"sourceRef":"ghcr.io/owner/private-app:tag","username":"GITHUB_USERNAME","token":"GITHUB_PAT"}'
+```
+
+Key constraints:
+- **Only `ghcr.io` is permitted** as a source in v1. Any other registry host returns 400.
+- For multi-arch images, the `linux/amd64` variant is selected automatically — no `--platform` flag needed.
+- Size limit is the same as upload (500 MB).
+- The GitHub PAT is used only for the one-time pull and is **never stored** on the platform.
+- The call is synchronous; on success it returns the same image object (`DockerImageDto`) as upload, with `status: running`.
+- Save the returned `id` to create a server, exactly as you would after an upload.
+
 ## Download from platform
 
 Previously uploaded images can be downloaded as tar files from the platform:

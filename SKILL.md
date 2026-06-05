@@ -97,6 +97,24 @@ curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/docker-images
 
 Response is a binary `application/x-tar` stream, not JSON. The suggested filename is `{imageName}-{version}.tar`.
 
+### Import Docker image from ghcr.io
+
+Import a pre-built image directly from GitHub Container Registry into your image library, without building or uploading a tar.
+
+```bash
+# Public image
+curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/docker-images/import" \
+  -H "Content-Type: application/json" \
+  -d '{"sourceRef":"ghcr.io/owner/app:tag"}'
+
+# Private image (GitHub PAT with read:packages scope)
+curl -s -H "Authorization: Bearer $TOKEN" -X POST "https://BASE_URL/api/v1/docker-images/import" \
+  -H "Content-Type: application/json" \
+  -d '{"sourceRef":"ghcr.io/owner/private-app:tag","username":"GITHUB_USERNAME","token":"GITHUB_PAT"}'
+```
+
+Only `ghcr.io` sources are permitted in v1. The PAT is used only for the pull and is never stored. For multi-arch images, `linux/amd64` is selected automatically. Returns the same `DockerImageDto` as upload (save the `id` to create a server). See [references/docker.md](references/docker.md) for full details.
+
 ### Delete resource
 
 > ⚠️ Always confirm with the user before deleting. Deletions are irreversible.

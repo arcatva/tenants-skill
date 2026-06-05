@@ -35,6 +35,7 @@ Response includes: `host`, `port`, `databaseName`, `dbUsername`, `password`, `ma
 | Endpoint | Method | Body | Description |
 |----------|--------|------|-------------|
 | `/docker-images` | POST | `multipart: file` | Upload image tar |
+| `/docker-images/import` | POST | `{"sourceRef","username","token"}` | Import image from ghcr.io |
 | `/docker-images` | GET | — | List images |
 | `/docker-images/{id}` | GET | — | Get image details |
 | `/docker-images/{id}` | DELETE | — | Delete image |
@@ -42,6 +43,8 @@ Response includes: `host`, `port`, `databaseName`, `dbUsername`, `password`, `ma
 
 Formats: `.tar`, `.tar.gz`, `.tgz`. Max: 500 MB. Name & version auto-extracted from manifest.
 Download returns a binary `application/x-tar` file (not JSON). Only available for images with `running` status.
+
+**Import from ghcr.io:** `sourceRef` is required (e.g. `ghcr.io/owner/image:tag`). Only `ghcr.io` sources are permitted in v1 — other registries return 400. `username` and `token` are optional and only needed for private images (GitHub PAT with `read:packages` scope); the token is used for a single pull and is never stored. For multi-arch images the `linux/amd64` variant is selected automatically. Size limit is the same as upload (500 MB). On success returns the same `DockerImageDto` object as upload, with `status: running`.
 
 ## Servers
 
