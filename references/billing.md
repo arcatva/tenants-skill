@@ -19,7 +19,10 @@ agent (this skill) can top up the user's wallet on their behalf. Payment settles
 no Shared Payment Token and nothing US-gated. The credit always lands on **the
 token owner's** wallet; there is no "buy for someone else".
 
-Packs (NZD, 1:1 into the wallet): `nz5`=500c, `nz20`=2000c, `nz50`=5000c.
+Packs (NZD, 1:1 into the wallet): `nz0_1`=10c, `nz5`=500c, `nz20`=2000c, `nz50`=5000c.
+> `nz0_1` (NZ$0.10) is below Stripe's NZD minimum charge (NZ$0.50): the session
+> is created fine but `complete` is rejected by Stripe with `amount_too_small`.
+> It's a tiny/edge-case item — use `nz5`+ for a charge that actually succeeds.
 
 ### Prerequisite: the user must enable "Agent payment" once
 
@@ -33,7 +36,7 @@ not set up"**. This is a one-time action the agent cannot do for them.
 
 ```bash
 BASE="https://BASE_URL"; AUTH=(-H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json")
-PACK="nz5"                       # nz5 | nz20 | nz50
+PACK="nz5"                       # nz0_1 | nz5 | nz20 | nz50
 
 # 1) create the checkout session for the pack
 SID=$(curl -s "${AUTH[@]}" -X POST "$BASE/acp/checkout_sessions" -d "{\"pack\":\"$PACK\"}" | jq -r .id)
