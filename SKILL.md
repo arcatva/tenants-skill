@@ -29,7 +29,7 @@ Understand what the user wants before acting:
 - **Get** → get details of a specific resource
 - **Delete** → delete a resource (confirm with user first)
 - **Bind/Unbind** → attach or detach a server from a site
-- **Balance / Buy credits** → check the prepaid wallet, or buy a compute credit pack via ACP agentic checkout (see [references/billing.md](references/billing.md))
+- **Balance / Buy credits** → check the prepaid wallet, or top it up via the auto-purchase flow (single API call, card saved once in dashboard — see [references/billing.md](references/billing.md))
 
 All operations require authentication first.
 

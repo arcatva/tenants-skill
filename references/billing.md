@@ -11,39 +11,47 @@ curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/billing/balan
 curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/billing/ledger"     # recent entries
 ```
 
-## Buy compute credits via ACP (agentic checkout)
+## Buy a compute package (auto-purchase)
 
-The platform self-hosts the **Agentic Commerce Protocol (ACP)** checkout: the
-agent (this skill) buys a credit pack on the user's behalf and pays with a
-Stripe Shared Payment Token (SPT). The credit always lands on **the token
-owner's** wallet — there is no "buy for someone else".
+The agent can top up the wallet in a single API call — no browser, no redirect
+— once the user has saved a card and enabled auto-purchase in the dashboard.
 
-Packs (NZD, 1:1 into the wallet): `nz5`=500c, `nz20`=2000c, `nz50`=5000c.
+### One-time prerequisite (user action, not agent)
 
-Three steps — all authenticated with the same `tn_` token:
+The user must do this once in the Tenants dashboard **Billing tab**:
+1. Add a card via the "Enable auto-purchase" button.
+2. Set a daily spending cap.
+
+The agent cannot do this step. If it hasn't been done, `POST /api/v1/billing/purchase` returns `403`.
+
+### Packages
+
+| Label | `amountCents` |
+|-------|--------------|
+| $5    | 500          |
+| $10   | 1000         |
+| $20   | 2000         |
+
+Maximum per-purchase hard cap: **$20 (2000 cents)**. The user also controls a daily cap.
+
+### Purchase call
 
 ```bash
-BASE="https://BASE_URL"; AUTH=(-H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json")
-PACK="nz5"; AMOUNT=500          # match AMOUNT to the pack: nz5=500 nz20=2000 nz50=5000
-
-# 1) obtain a (test-mode) shared payment token for the amount
-SPT=$(curl -s "${AUTH[@]}" -X POST "$BASE/acp/test/mint_spt" -d "{\"amount_cents\":$AMOUNT}" | jq -r .shared_payment_token)
-
-# 2) create the checkout session for the pack
-SID=$(curl -s "${AUTH[@]}" -X POST "$BASE/acp/checkout_sessions" -d "{\"pack\":\"$PACK\"}" | jq -r .id)
-
-# 3) complete — Stripe validates the SPT, charges, and the wallet is credited
-curl -s "${AUTH[@]}" -X POST "$BASE/acp/checkout_sessions/$SID/complete" -d "{\"shared_payment_token\":\"$SPT\"}"
-#   -> {"order_id":"acp_...","status":"completed"}
-
-# verify
-curl -s "${AUTH[@]}" "$BASE/api/v1/billing/balance"
+# Prereq: user enabled auto-purchase + saved a card once in the dashboard Billing tab.
+# Buy a $5 package (off-session, no browser):
+curl -s -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -X POST "https://BASE_URL/api/v1/billing/purchase" -d '{"amountCents":500}'
+# → {"status":"succeeded","balance_cents":1234}
+# If it returns {"status":"action_required","checkout_url":"..."} the user must open that link once (bank 3DS).
+# If it returns 403 {"error":"auto-purchase not enabled"} the user hasn't set up a card / enabled it.
 ```
 
-### Notes / limits
-- **Test mode only:** `/acp/test/mint_spt` mints a *test* SPT (test card, no real
-  money). It exists so the flow is end-to-end demoable. Real card payment needs a
-  real agent-payment integration (not wired yet). For real top-ups today, the
-  dashboard's Stripe Checkout flow takes real cards.
-- Completing the same session twice is idempotent (no double charge).
-- `complete` returns `402` if payment fails, `403` if the session isn't yours.
+### Response shapes
+
+| HTTP | Body | Meaning |
+|------|------|---------|
+| `200` | `{"status":"succeeded","balance_cents":<int>}` | Charged and credited. Done. |
+| `200` | `{"status":"action_required","checkout_url":"<url>"}` | Bank requires 3DS — give the user the URL to open once, then retry. |
+| `403` | `{"error":"<reason>"}` | Not set up or over cap. Reasons: `"auto-purchase not enabled"`, `"no saved card"`, `"amount exceeds per-purchase cap"`, `"daily cap exceeded"`. |
+
+> **Note:** The old ACP/SPT (`/acp/test/mint_spt`, `/acp/checkout_sessions`) path is disabled and no longer available.
