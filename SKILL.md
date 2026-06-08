@@ -1,5 +1,6 @@
 ---
 name: tenants
+version: "2026.06.09"
 description: Manage resources on the Tenants PaaS platform — deploy full-stack projects or perform CRUD operations on databases, servers, sites, and Docker images via API.
 allowed-tools: Bash(curl *) Bash(mkdir *) Bash(rm -rf /tmp/tenants-deploy*) Bash(docker *) Bash(sudo docker *) Bash(sudo chmod *) Bash(ls *) Bash(cp *) Bash(grep *) Bash(head *) Bash(sed *) Bash(tr *) Bash(cut *) mcp__docker__build_image mcp__docker__list_images Read Write
 ---
@@ -43,12 +44,32 @@ curl -s -H "Authorization: Bearer $TOKEN" "https://BASE_URL/api/v1/..."
 
 Store the token in a variable at the start of the session; the user gets it from the dashboard's Skill panel (a single button — they paste the `tn_…` string into the agent). See [references/auth.md](references/auth.md) for details.
 
-> Verify the token works before doing anything else:
+> Verify the token works before doing anything else, and capture the response (it
+> also advertises the current skill version):
 >
 > ```bash
-> curl -sf -H "Authorization: Bearer $TOKEN" "https://BASE_URL/auth/me" >/dev/null \
+> ME=$(curl -sf -H "Authorization: Bearer $TOKEN" "https://BASE_URL/auth/me") \
 >   || { echo "Token invalid"; exit 1; }
+> echo "$ME" | grep -oE '"skill(Latest|Min)":"[^"]*"'   # shows skillLatest / skillMin
 > ```
+
+### Version check (do this right after the token check)
+
+This skill is version **2026.06.09** (matches the `version` in the frontmatter above).
+The `/auth/me` response advertises `skillLatest` and `skillMin`. Versions are
+`YYYY.MM.DD`, so compare them as plain strings.
+
+- If this skill's version **< `skillMin`** → **STOP**. Tell the user their tenants-skill
+  is too old to use safely (the platform has breaking changes) and must be updated, then
+  do not proceed:
+  > ⛔ Your tenants-skill (2026.06.09) is below the required minimum (`skillMin`). Update before continuing:
+  > `git -C ~/.claude/skills/tenants-skill pull`
+- Else if this skill's version **< `skillLatest`** → tell the user an update is available,
+  then continue normally:
+  > ℹ️ A newer tenants-skill (`skillLatest`) is available (you have 2026.06.09). Update when convenient: `git -C ~/.claude/skills/tenants-skill pull`
+- Else (up to date) → say nothing, proceed.
+
+If `skillLatest`/`skillMin` are absent (older backend), skip the check.
 
 ## CRUD Operations
 
