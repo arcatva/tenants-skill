@@ -4,7 +4,7 @@ Starter templates for deploying to Tenants PaaS. Replace `DB_HOST`, `DB_PORT`, `
 
 > ⚠️ Every Dockerfile below pins `FROM --platform=linux/amd64`. The Tenants cluster only runs amd64 nodes — do not remove this flag, even when templating for an arm64 host. Also pass `--platform=linux/amd64` to `docker build`. See [docker.md](docker.md).
 
-> 🔒 **Run as non-root.** The platform runs every container with a hardened security profile (no privilege escalation, dropped Linux capabilities, seccomp). Images **must not run as root** — end each Dockerfile with a numeric `USER` (not a name, so Kubernetes can verify it) and make the app's files group-0-owned + group-writable (`chown -R <uid>:0 … && chmod -R g=u …`) so they stay readable/writable whatever UID the platform assigns. Listen on **8080** (a high port) so no privileged-port capability is needed. A root image will be rejected at deploy time.
+> 🔒 **Run as non-root.** The platform runs every container as **UID 65532** (it sets `runAsUser: 65532` + `runAsGroup: 0`, overriding the image's own `USER`), with a hardened profile (no privilege escalation, dropped Linux capabilities, seccomp). So: end each Dockerfile with `USER 65532` (numeric, matches the platform) and make the app's files owned by `65532:0` + group-writable (`chown -R 65532:0 … && chmod -R g=u …`) so they're writable under that UID (the group-0 ownership also keeps it working if the platform ever assigns a different UID). Listen on **8080** (a high port) so no privileged-port capability is needed. A root image is rejected at deploy time.
 
 ## Node.js + Express + PostgreSQL
 
@@ -30,11 +30,11 @@ WORKDIR /app
 COPY package.json .
 RUN npm install --production
 COPY . .
-# Non-root: node:alpine ships a uid-1000 'node' user. Own /app by group 0 and
-# make it group-writable so it works under any assigned UID.
-RUN chown -R 1000:0 /app && chmod -R g=u /app
+# Non-root: own /app by 65532:0 + group-writable (matches the platform's forced
+# UID 65532 / GID 0; works under any assigned UID thanks to the group-0 ownership).
+RUN chown -R 65532:0 /app && chmod -R g=u /app
 EXPOSE 8080
-USER 1000
+USER 65532
 CMD ["node", "server.js"]
 ```
 
@@ -76,11 +76,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-# Non-root: own /app by group 0 + group-writable (no named user needed; a numeric
+# Non-root: own /app by 65532:0 + group-writable (no named user needed; a numeric
 # UID with no /etc/passwd entry runs fine for gunicorn).
-RUN chown -R 1000:0 /app && chmod -R g=u /app
+RUN chown -R 65532:0 /app && chmod -R g=u /app
 EXPOSE 8080
-USER 1000
+USER 65532
 CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
 ```
 
@@ -119,8 +119,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server .
 FROM --platform=linux/amd64 alpine:3.19
 COPY --from=build /app/server /server
 EXPOSE 8080
-# Static binary needs no writable dirs; just run as a non-root numeric UID.
-USER 1000
+# Static binary needs no writable dirs; just run as the platform's non-root UID.
+USER 65532
 CMD ["/server"]
 ```
 
@@ -138,7 +138,8 @@ FROM --platform=linux/amd64 nginxinc/nginx-unprivileged:stable
 # Copy your built static assets (e.g. a Vite/React `dist/`) into the web root.
 COPY dist/ /usr/share/nginx/html/
 EXPOSE 8080
-# Base image already sets USER 101 and listens on 8080 — nothing else to do.
+# nginx-unprivileged ships USER 101 + listens on 8080 with group-0-writable dirs,
+# so it runs fine under the platform's forced UID 65532 — nothing else to do.
 ```
 
 > Migrating an existing stock-`nginx` image and you have no source? Rebase it without rebuilding:
@@ -151,7 +152,7 @@ EXPOSE 8080
 ## Key constraints
 
 - **Platform**: `linux/amd64` — pin it in `FROM` and pass `--platform=linux/amd64` to `docker build`
-- **Non-root**: end with a numeric `USER` (e.g. `USER 1000`); root images are rejected at deploy. See the 🔒 note above.
+- **Non-root**: end with `USER 65532` (the platform runs containers as that UID); root images are rejected at deploy. See the 🔒 note above.
 - **Port**: Always 8080 (a high port — no privileged-port capability needed)
 - **DB credentials**: Hardcoded in source (no env var injection)
 - **Image tag**: `name:version` format required (e.g. `myapp:1.0.0`)
