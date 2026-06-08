@@ -292,5 +292,6 @@ Error:
 - Container resources: 128Mi/100m requests, 512Mi/500m limits
 - Limits: 5 sites, 3 databases per user
 - Port auto-detected from Docker image `EXPOSE` directive (default: 8080)
+- Images **must run as non-root** (numeric `USER`, e.g. `USER 1000`; listen on 8080) — root images are rejected at deploy. See [references/docker.md](references/docker.md) + [references/app-templates.md](references/app-templates.md)
 - Resource names must follow RFC 1123 and be **≤ 20 characters**: start with a lowercase letter, contain only lowercase letters, digits, and hyphens (the platform appends `-<username>-<suffix>` to produce the final K8s resource name — the 20-char cap leaves room to stay under the 63-char DNS label limit)
 - Always confirm with user before deleting resources

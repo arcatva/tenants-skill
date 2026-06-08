@@ -54,10 +54,21 @@ sudo chmod 644 /tmp/tenants-deploy/image.tar
 ## Image requirements
 
 - **Platform must be `linux/amd64`** (see section above)
+- **Must run as non-root** — the platform applies a hardened security profile (no privilege escalation, all Linux capabilities dropped, seccomp `RuntimeDefault`). End the Dockerfile with a numeric `USER` (e.g. `USER 1000`) and listen on a high port (8080). A root image is rejected at deploy. See the 🔒 note and per-language templates in [app-templates.md](app-templates.md).
 - Use `EXPOSE` in Dockerfile to declare the listening port (default: 8080 if omitted)
 - Database credentials must be hardcoded (no env var injection at runtime)
 - Tag format `name:version` — auto-extracted from tar's `manifest.json` `RepoTags`
 - Max upload size: 500 MB
+
+## Verify the image is non-root
+
+Before uploading, confirm the image does not run as root:
+
+```bash
+sudo docker inspect APP_NAME:VERSION --format 'USER=[{{.Config.User}}]'
+# expected: a non-empty, non-zero numeric UID, e.g. USER=[1000]
+# USER=[] or USER=[root] or USER=[0] → will be rejected; add `USER 1000` to the Dockerfile
+```
 
 ## Import from ghcr.io
 
