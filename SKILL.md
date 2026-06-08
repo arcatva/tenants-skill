@@ -1,6 +1,6 @@
 ---
 name: tenants
-version: "2026.06.09"
+version: "1.0.0"
 description: Manage resources on the Tenants PaaS platform — deploy full-stack projects or perform CRUD operations on databases, servers, sites, and Docker images via API.
 allowed-tools: Bash(curl *) Bash(mkdir *) Bash(rm -rf /tmp/tenants-deploy*) Bash(docker *) Bash(sudo docker *) Bash(sudo chmod *) Bash(ls *) Bash(cp *) Bash(grep *) Bash(head *) Bash(sed *) Bash(tr *) Bash(cut *) mcp__docker__build_image mcp__docker__list_images Read Write
 ---
@@ -55,18 +55,19 @@ Store the token in a variable at the start of the session; the user gets it from
 
 ### Version check (do this right after the token check)
 
-This skill is version **2026.06.09** (matches the `version` in the frontmatter above).
+This skill is version **1.0.0** (matches the `version` in the frontmatter above).
 The `/auth/me` response advertises `skillLatest` and `skillMin`. Versions are
-`YYYY.MM.DD`, so compare them as plain strings.
+semver `MAJOR.MINOR.PATCH` — compare **segment by segment as integers** (so
+`1.4.10` > `1.4.2`), NOT as plain strings.
 
 - If this skill's version **< `skillMin`** → **STOP**. Tell the user their tenants-skill
   is too old to use safely (the platform has breaking changes) and must be updated, then
   do not proceed:
-  > ⛔ Your tenants-skill (2026.06.09) is below the required minimum (`skillMin`). Update before continuing:
+  > ⛔ Your tenants-skill (1.0.0) is below the required minimum (`skillMin`). Update before continuing:
   > `git -C ~/.claude/skills/tenants-skill pull`
 - Else if this skill's version **< `skillLatest`** → tell the user an update is available,
   then continue normally:
-  > ℹ️ A newer tenants-skill (`skillLatest`) is available (you have 2026.06.09). Update when convenient: `git -C ~/.claude/skills/tenants-skill pull`
+  > ℹ️ A newer tenants-skill (`skillLatest`) is available (you have 1.0.0). Update when convenient: `git -C ~/.claude/skills/tenants-skill pull`
 - Else (up to date) → say nothing, proceed.
 
 If `skillLatest`/`skillMin` are absent (older backend), skip the check.
